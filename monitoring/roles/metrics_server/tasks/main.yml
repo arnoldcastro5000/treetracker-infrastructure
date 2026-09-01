@@ -23,12 +23,20 @@
     wait: true
     atomic: true
     release_values:
-      # Upstream chart takes extra flags as a list, unlike Bitnami's extraArgs map.
+      # The upstream chart renders defaultArgs first, then args. It appends any
+      # duplicate flag, so we override defaultArgs to set
+      # --kubelet-preferred-address-types once to InternalIP (the DO node
+      # network). The stock defaultArgs would add ExternalIP,Hostname and leave
+      # a duplicate entry. The other three defaults are kept as-is.
+      defaultArgs:
+        - --cert-dir=/tmp
+        - --kubelet-preferred-address-types=InternalIP
+        - --kubelet-use-node-status-port
+        - --metric-resolution=15s
       # --kubelet-insecure-tls is required on DigitalOcean (kubelet serving certs
-      # lack IP SANs); InternalIP matches the DO node network.
+      # lack IP SANs). It is a bool flag with no default, so it stays in args.
       args:
         - --kubelet-insecure-tls
-        - --kubelet-preferred-address-types=InternalIP
       apiService:
         create: true
       affinity:
